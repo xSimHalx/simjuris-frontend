@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-legal-blue: #2F4858;
+  --color-legal-blue-dark: #1F3645;
+  --color-legal-gold: #B69B74;
+  --color-legal-gold-light: #D4B991;
+  --color-legal-bg: #EFEDE8;
+  --color-legal-burgundy: #6E3E3E;
+  --color-legal-charcoal: #73706E;
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Montserrat', sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-[#EFEDE8] text-[#73706E] font-sans antialiased;
+    background-image: 
+      radial-gradient(at 0% 0%, #2F48580A 0px, transparent 50%),
+      radial-gradient(at 100% 0%, #B69B740D 0px, transparent 50%);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply backdrop-blur-xl bg-white/80 border border-white/60 shadow-xl shadow-slate-200/50;
+  }
+
+  .modern-input {
+    @apply w-full px-5 py-4 rounded-2xl border-2 border-transparent bg-slate-100/70 
+           focus:bg-white focus:border-[#B69B74]/50 focus:ring-4 focus:ring-[#B69B74]/10 
+           outline-none transition-all duration-300 font-medium placeholder:text-slate-400 text-slate-800;
+  }
+}
+
+/* Animações Premium */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%) skewX(-15deg);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { @apply bg-transparent; }
+::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors; }
