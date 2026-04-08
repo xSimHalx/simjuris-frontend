@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export default async function handler(req: any, res: any) {
   const { path } = req.query;
-  const targetUrl = `https://social-emus-hug.loca.lt/api/${Array.isArray(path) ? path.join('/') : path}`;
+  const targetUrl = `https://78c3-2804-30c-a04-5a00-95e5-5fe2-6164-7990.ngrok-free.app/api/${Array.isArray(path) ? path.join('/') : path}`;
   
   // Repassar query parameters se houver (exceto o próprio path usado pela rota do Vercel)
   const queryParams = { ...req.query };
@@ -17,9 +17,9 @@ export default async function handler(req: any, res: any) {
       data: req.body,
       headers: {
         ...req.headers,
-        // Forçar o host correto para o LocalTunnel e injetar o bypass
-        host: 'social-emus-hug.loca.lt',
-        'bypass-tunnel-reminder': 'true',
+        // Forçar o host correto para o ngrok e injetar o bypass
+        host: '78c3-2804-30c-a04-5a00-95e5-5fe2-6164-7990.ngrok-free.app',
+        'ngrok-skip-browser-warning': 'true',
       },
       // Não lançar erro para status codes fora de 2xx (repassar o que o backend enviar)
       validateStatus: () => true,
