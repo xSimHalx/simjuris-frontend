@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Calendar, Bell, History, Menu, X, LogOut, ChevronDown, Shield, Settings,
-  Home, Users, CalendarDays, MessageSquare, UserCircle
+  Home, Users, CalendarDays, MessageSquare, UserCircle, TestTube
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/api';
+import OnboardingTour from './OnboardingTour';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
@@ -22,6 +23,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { path: '/eventos', icon: CalendarDays, label: 'Pauta Geral' },
     { path: '/historico', icon: History, label: 'Log de Envios' },
     { path: '/whatsapp', icon: MessageSquare, label: 'WhatsApp' },
+    { path: '/testes', icon: TestTube, label: 'Laboratório de Testes' },
     { path: '/configuracoes', icon: Settings, label: 'Configurações' }
   ];
 
@@ -44,6 +46,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-[#EFEDE8] flex font-sans overflow-hidden">
+      <OnboardingTour />
       
       {/* Sidebar Mobile Overlay */}
       <AnimatePresence>
@@ -83,13 +86,24 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </button>
         </div>
         
-        <nav className="flex-1 px-4 py-8 space-y-3 overflow-y-auto">
+        <nav id="sidebar-nav" className="flex-1 px-4 py-8 space-y-3 overflow-y-auto">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
+            const itemIds: Record<string, string> = {
+              '/': 'nav-dashboard',
+              '/crm': 'nav-crm',
+              '/eventos': 'nav-eventos',
+              '/historico': 'nav-historico',
+              '/whatsapp': 'nav-whatsapp',
+              '/testes': 'nav-testes',
+              '/configuracoes': 'nav-configuracoes'
+            };
+
             return (
                 <motion.div
                   key={item.path}
+                  id={itemIds[item.path]}
                   initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 + index * 0.05 }}
@@ -153,6 +167,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
           <div className="flex items-center gap-6">
             <button 
+              id="notification-bell"
               onClick={() => navigate('/historico')}
               className="relative p-3 text-gray-400 bg-white rounded-xl shadow-sm border border-gray-100 hover:text-[#2F4858] hover:shadow-md transition-all duration-300 group"
             >
@@ -166,7 +181,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             
             <div className="h-10 w-px bg-gray-200 hidden sm:block"></div>
             
-            <div className="relative">
+            <div className="relative" id="profile-menu">
               <div 
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center gap-4 cursor-pointer hover:bg-white/50 p-2 pr-4 rounded-2xl transition-all group border border-transparent hover:border-gray-100"
