@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: window.location.hostname.includes('vercel.app') 
-    ? '/api' 
+    ? '' 
     : (import.meta.env.VITE_API_URL || 'http://localhost:3333'),
   headers: {
     'bypass-tunnel-reminder': 'true'
