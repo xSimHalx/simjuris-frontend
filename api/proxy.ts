@@ -1,17 +1,19 @@
 export default async function handler(req: any, res: any) {
   const { path } = req.query;
-  const targetUrl = `https://78c3-2804-30c-a04-5a00-95e5-5fe2-6164-7990.ngrok-free.app/api/${Array.isArray(path) ? path.join('/') : path}`;
+  
+  // URL da sua VPS na Hostinger
+  const vpsIp = '82.112.245.75';
+  const targetUrl = `http://${vpsIp}:3333/api/${Array.isArray(path) ? path.join('/') : path}`;
   
   const queryParams = { ...req.query };
   delete queryParams.path;
   const queryString = new URLSearchParams(queryParams as any).toString();
   const finalUrl = queryString ? `${targetUrl}?${queryString}` : targetUrl;
 
-  // Filtrar cabeçalhos para evitar conflitos (manter apenas o essencial)
+  // Filtrar cabeçalhos essenciais para produção
   const safeHeaders: Record<string, string> = {
     'content-type': req.headers['content-type'] || 'application/json',
     'accept': req.headers['accept'] || '*/*',
-    'ngrok-skip-browser-warning': 'true',
   };
 
   if (req.headers['authorization']) {
@@ -27,12 +29,12 @@ export default async function handler(req: any, res: any) {
 
     const data = await response.json().catch(() => null);
 
-    // Repassar o status e o corpo da resposta
+    // Repassar o status e o corpo da resposta da VPS
     res.status(response.status).json(data || { status: 'success' });
   } catch (error: any) {
-    console.error('Safe Proxy Error:', error.message);
+    console.error('VPS Proxy Error:', error.message);
     res.status(502).json({ 
-      error: 'SimJuris Gateway Timeout/Error', 
+      error: 'SimJuris VPS Gateway Error', 
       details: error.message,
       target: finalUrl 
     });
