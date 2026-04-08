@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { History as HistoryIcon, Search, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { Search } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import api from '../api/api';
 
 const History: React.FC = () => {
   const [logs, setLogs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchLogs = async () => {
