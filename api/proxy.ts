@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export default async function handler(req: any, res: any) {
   const { path } = req.query;
-  const targetUrl = `https://cool-jars-burn.loca.lt/api/${Array.isArray(path) ? path.join('/') : path}`;
+  const targetUrl = `https://social-emus-hug.loca.lt/api/${Array.isArray(path) ? path.join('/') : path}`;
   
   // Repassar query parameters se houver (exceto o próprio path usado pela rota do Vercel)
   const queryParams = { ...req.query };
@@ -18,7 +18,7 @@ export default async function handler(req: any, res: any) {
       headers: {
         ...req.headers,
         // Forçar o host correto para o LocalTunnel e injetar o bypass
-        host: 'cool-jars-burn.loca.lt',
+        host: 'social-emus-hug.loca.lt',
         'bypass-tunnel-reminder': 'true',
       },
       // Não lançar erro para status codes fora de 2xx (repassar o que o backend enviar)
