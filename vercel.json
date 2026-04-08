@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://dry-planets-learn.loca.lt/api/:path*"
+      "destination": "https://cool-jars-burn.loca.lt/api/:path*"
     },
     {
       "source": "/(.*)",
