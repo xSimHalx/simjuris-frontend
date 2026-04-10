@@ -23,7 +23,8 @@ const Settings: React.FC = () => {
     nome_fantasia: '', 
     google_maps_link: '', 
     evolution_instance_id: '',
-    config_fluxos: [] as any[]
+    config_fluxos: [] as any[],
+    hide_error_alerts: false
   });
 
   // Estado do Modal Premium
@@ -88,12 +89,14 @@ const Settings: React.FC = () => {
       await api.patch('/api/tenant', {
         nome_fantasia: tenant.nome_fantasia,
         google_maps_link: tenant.google_maps_link,
-        config_fluxos: tenant.config_fluxos
+        config_fluxos: tenant.config_fluxos,
+        hide_error_alerts: tenant.hide_error_alerts
       });
       setSuccess('Configurações atualizadas com sucesso!');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erro ao atualizar configurações.');
+      console.error('ERRO AO SALVAR TENANT (VPS):', err.response?.data || err.message);
+      setError(err.response?.data?.error || 'Erro ao atualizar configurações. Verifique a conexão com a VPS.');
     } finally {
       setLoading(false);
     }
