@@ -52,7 +52,6 @@ const Dashboard: React.FC = () => {
         setWaStatus(waRes.data.status === 'open' ? 'online' : 'offline');
         setConfig(tenantRes.data);
         
-        // Se a preferência de ocultar estiver ativa no banco, já fechar o alerta
         if (tenantRes.data.hide_error_alerts) {
           setAlertDismissed(true);
         }
@@ -94,7 +93,6 @@ const Dashboard: React.FC = () => {
   const today = new Date().toISOString().split('T')[0];
   const activeEvents = events.filter(e => e.status === 'AGENDADO');
   
-  // Filtro por Natureza
   const natureFilteredEvents = activeEvents.filter(e => !naturezaFiltro || e.natureza === naturezaFiltro);
 
   const eventsToday = natureFilteredEvents.filter(e => e.data_hora_evento.startsWith(today));
@@ -125,7 +123,6 @@ const Dashboard: React.FC = () => {
       animate="visible"
       className="space-y-8 pb-12"
     >
-      {/* Header com Saúde do Sistema */}
       <motion.div variants={itemVariants} className="flex flex-col lg:flex-row justify-between lg:items-center gap-6">
         <div>
           <h2 className="text-3xl font-black text-[#2F4858] font-display bg-clip-text text-transparent bg-premium-gradient" style={{ letterSpacing: '-0.02em' }}>Visão Geral</h2>
@@ -149,7 +146,6 @@ const Dashboard: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Alerta de Erros */}
       <AnimatePresence>
         {stats.errors > 0 && !alertDismissed && (
           <motion.div 
@@ -231,10 +227,8 @@ const Dashboard: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Grid Principal: Métricas + Gráfico */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Lado Esquerdo: Cards de Stats */}
         <div className="space-y-6">
           <motion.div variants={itemVariants} whileHover={{ y: -5 }} className="glass p-8 rounded-[2.5rem] flex items-center justify-between border-l-8 border-l-[#2F4858] group relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -265,7 +259,6 @@ const Dashboard: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Lado Direito: Gráfico de Atividade */}
         <motion.div variants={itemVariants} className="lg:col-span-2 glass rounded-[2.5rem] p-8 border border-white/60 relative overflow-hidden flex flex-col">
           <div className="flex justify-between items-center mb-8 relative z-10">
             <div>
@@ -319,10 +312,8 @@ const Dashboard: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* Listas Principais */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
-        {/* Agenda de Hoje */}
         <div className="glass rounded-[2.5rem] overflow-hidden flex flex-col h-[480px]">
           <div className="p-8 border-b border-white/40 flex justify-between items-center bg-white/20 backdrop-blur-md">
             <h3 className="font-black text-[#2F4858] flex items-center gap-3 text-sm uppercase tracking-[0.2em]">
@@ -396,7 +387,6 @@ const Dashboard: React.FC = () => {
                                {(() => {
                                  const currentFluxo = config?.config_fluxos?.find((f: any) => f.nome === event.natureza);
                                  if (!currentFluxo) return null;
-                                 const currentTipo = currentFluxo.tipos?.find((t: any) => t.nome === event.tipo_evento);
                                  
                                  return (
                                    <span className="text-[8px] font-black text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 uppercase tracking-widest">
@@ -422,7 +412,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Próximas Datas */}
         <div className="glass rounded-[2.5rem] overflow-hidden flex flex-col h-[480px]">
           <div className="p-8 border-b border-white/40 flex justify-between items-center bg-white/10 backdrop-blur-md">
             <h3 className="font-black text-[#2F4858] flex items-center gap-3 text-sm uppercase tracking-[0.2em]">

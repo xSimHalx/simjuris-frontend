@@ -18,6 +18,11 @@ interface Evento {
   tipo_evento: string;
   data_hora_evento: string;
   status: string;
+  natureza: string;
+  instancia_judicial?: string | null;
+  fase_administrativa?: string | null;
+  local_link?: string | null;
+  omit_location?: boolean;
   numero_processo?: string;
   notification_logs?: any[];
 }
@@ -431,7 +436,9 @@ const CRM = () => {
       processo: '',
       natureza: firstFluxo?.nome || 'JUDICIAL',
       instancia: firstType?.sub_items?.[0] || '',
-      fase: firstType?.sub_items?.[0] || ''
+      fase: firstType?.sub_items?.[0] || '',
+      localLink: '',
+      omitLocation: false
     });
     setEventError('');
     setEventSuccess('');
@@ -442,14 +449,16 @@ const CRM = () => {
   const resetForms = () => {
     setStep('client');
     setClientForm({ id: '', nome: '', zap: '', doc: '' });
-    setEventForm({ 
-      titulo: '', 
-      dataHora: '', 
-      tipo: 'PRAZO', 
+    setEventForm({
+      titulo: '',
+      dataHora: '',
+      tipo: 'REUNIAO',
       processo: '',
       natureza: 'JUDICIAL',
       instancia: '1_INSTANCIA',
-      fase: 'AGUARDANDO_PERICIA'
+      fase: 'AGUARDANDO_PERICIA',
+      localLink: '',
+      omitLocation: false
     });
     setNewClientId('');
     setEventError('');

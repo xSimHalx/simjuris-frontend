@@ -69,7 +69,7 @@ const MaskedInput: React.FC<MaskedInputProps> = ({ mask, icon, label, value, onC
       <div className="relative group">
         {icon && (
           <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#B69B74] transition-colors">
-            {React.cloneElement(icon as React.ReactElement, { size: 20 })}
+            {React.cloneElement(icon as React.ReactElement<any>, { size: 20 })}
           </div>
         )}
         <input

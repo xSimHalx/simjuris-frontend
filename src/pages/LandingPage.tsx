@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Shield, CheckCircle, Zap, MessageSquare, 
-  ArrowRight, Activity, Calendar, Users, 
-  Clock, Smartphone, Hash, PlusCircle,
-  CreditCard, ChevronDown, HelpCircle, Star,
-  Monitor, Layers, X
+  Shield, CheckCircle, MessageSquare, 
+  ArrowRight, Activity, CreditCard, ChevronDown, Star, X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,23 +18,7 @@ const LandingPage: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const features = [
-    {
-      icon: <Zap className="w-6 h-6" />,
-      title: "Automação Zero-Config",
-      description: "Conecte seu WhatsApp via QR Code e o SimJuris cuida de todos os avisos e lembretes automaticamente."
-    },
-    {
-      icon: <Activity className="w-6 h-6" />,
-      title: "Cockpit Jurídico",
-      description: "Interface de alta performance para rastrear cada etapa processual com visão executiva clara."
-    },
-    {
-      icon: <Shield className="w-6 h-6" />,
-      title: "Segurança de Elite",
-      description: "Dados protegidos com criptografia de ponta, garantindo a privacidade das informações dos seus clientes."
-    }
-  ];
+  // features removido para estabilizar o build
 
   const pricing = [
     {
@@ -71,23 +52,7 @@ const LandingPage: React.FC = () => {
     }
   ];
 
-  const workflow = [
-    {
-      step: "01",
-      title: "Conexão Instante",
-      description: "Escaneie o QR Code e sincronize o WhatsApp oficial do seu escritório."
-    },
-    {
-      step: "02",
-      title: "Gestão Inteligente",
-      description: "Cadastre clientes e agende audiências ou prazos em segundos."
-    },
-    {
-      step: "03",
-      title: "Liberdade Total",
-      description: "O sistema envia notificações personalizadas sem que você mova um dedo."
-    }
-  ];
+  // workflow removido para estabilizar o build
 
   return (
     <div className="min-h-screen bg-[#EFEDE8] font-sans selection:bg-[#B69B74] selection:text-white overflow-x-hidden">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Filter, CheckCircle, Ban, 
-  User, MapPin, Hash, AlertCircle, Smartphone, Activity
+  MapPin, Hash, AlertCircle, Smartphone, Activity
 } from 'lucide-react';
 import api from '../api/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,6 +12,9 @@ interface Evento {
   tipo_evento: string;
   data_hora_evento: string;
   status: string;
+  natureza: string;
+  instancia_judicial?: string | null;
+  fase_administrativa?: string | null;
   numero_processo?: string;
   local_link?: string;
   client?: {

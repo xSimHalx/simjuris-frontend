@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  User, Shield, Building2, Save, Globe, CheckCircle, AlertCircle, Smartphone, Clock, PlusCircle, Trash2, Pencil, X
+  User, Shield, Building2, Save, Globe, CheckCircle, AlertCircle, PlusCircle, Trash2, Pencil, X
 } from 'lucide-react';
 import api from '../api/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -99,7 +99,7 @@ const Settings: React.FC = () => {
     }
   };
 
-  const inputCls = "w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-transparent bg-white/50 focus:border-[#B69B74]/50 focus:bg-white focus:ring-4 focus:ring-[#B69B74]/10 transition-all outline-none font-semibold text-slate-700 placeholder:text-slate-300";
+  // inputCls removido por ser redundante neste contexto
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
