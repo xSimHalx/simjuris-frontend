@@ -20,6 +20,8 @@ export default async function handler(req: any, res: any) {
     safeHeaders['authorization'] = req.headers['authorization'];
   }
 
+  console.log(`[PROXY] Forwarding ${req.method} to: ${finalUrl}`);
+
   try {
     const body = req.method !== 'GET' && req.method !== 'HEAD' 
       ? (typeof req.body === 'string' ? req.body : JSON.stringify(req.body))
@@ -27,7 +29,10 @@ export default async function handler(req: any, res: any) {
 
     const response = await fetch(finalUrl, {
       method: req.method,
-      headers: safeHeaders,
+      headers: {
+        ...safeHeaders,
+        'content-type': 'application/json',
+      },
       body,
     });
 
