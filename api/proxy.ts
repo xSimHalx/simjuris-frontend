@@ -21,10 +21,14 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
+    const body = req.method !== 'GET' && req.method !== 'HEAD' 
+      ? (typeof req.body === 'string' ? req.body : JSON.stringify(req.body))
+      : undefined;
+
     const response = await fetch(finalUrl, {
       method: req.method,
       headers: safeHeaders,
-      body: req.method !== 'GET' && req.method !== 'HEAD' ? JSON.stringify(req.body) : undefined,
+      body,
     });
 
     const data = await response.json().catch(() => null);
