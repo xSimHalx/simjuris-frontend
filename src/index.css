@@ -15,6 +15,9 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-[#EFEDE8] text-[#73706E] font-sans antialiased;
     background-image: 

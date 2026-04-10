@@ -8,6 +8,8 @@ const OnboardingTour: React.FC = () => {
     const hasCompletedTour = localStorage.getItem('simjuris_tour_completed');
     if (!hasCompletedTour) {
       setRun(true);
+      // Marcar como visto imediatamente para não incomodar em futuros reloads/acessos
+      localStorage.setItem('simjuris_tour_completed', 'true');
     }
   }, []);
 

@@ -27,7 +27,7 @@ const Login: React.FC = () => {
       const response = await api.post('/api/auth/login', { email, password });
       const { token, user } = response.data;
       login(token, user);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.error || 'E-mail ou senha incorretos.');
     } finally {

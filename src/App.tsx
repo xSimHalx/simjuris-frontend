@@ -10,6 +10,7 @@ import History from './pages/History';
 import CRM from './pages/CRM';
 import Settings from './pages/Settings';
 import Tests from './pages/Tests';
+import LandingPage from './pages/LandingPage';
 
 // Componente para proteger rotas privadas
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -36,8 +37,9 @@ const App: React.FC = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/" element={<LandingPage />} />
           
-          <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/eventos" element={<PrivateRoute><Events /></PrivateRoute>} />
           <Route path="/whatsapp" element={<PrivateRoute><Instances /></PrivateRoute>} />
           <Route path="/historico" element={<PrivateRoute><History /></PrivateRoute>} />

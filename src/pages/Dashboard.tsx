@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { 
   Calendar, Clock, CheckCircle, 
   Search, MessageSquare, AlertTriangle,
-  Activity, Smartphone, Server
+  Activity, Smartphone, Server, X
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, 
@@ -19,21 +19,47 @@ const Dashboard: React.FC = () => {
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [waStatus, setWaStatus] = useState<'online' | 'offline'>('offline');
+  const [naturezaFiltro, setNaturezaFiltro] = useState<string>('');
+  const [config, setConfig] = useState<any>(null);
+  const [alertDismissed, setAlertDismissed] = useState(false);
+  const [showDismissConfirm, setShowDismissConfirm] = useState(false);
+
+  const handlePermanentDismiss = async () => {
+    try {
+      await api.patch('/api/tenant', { hide_error_alerts: true });
+      setAlertDismissed(true);
+      setConfig({ ...config, hide_error_alerts: true });
+    } catch (err) {
+      console.error('Erro ao salvar preferência', err);
+      setAlertDismissed(true);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [eventsRes, statsRes, chartRes, waRes] = await Promise.all([
+        const [eventsRes, statsRes, chartRes, waRes, tenantRes] = await Promise.all([
           api.get('/api/events'),
           api.get('/api/notifications/stats'),
           api.get('/api/notifications/chart-stats'),
-          api.get('/api/instances/').catch(() => ({ data: { status: 'offline' } }))
+          api.get('/api/instances/').catch(() => ({ data: { status: 'offline' } })),
+          api.get('/api/tenant')
         ]);
         
         setEvents(eventsRes.data);
         setStats(statsRes.data);
         setChartData(chartRes.data);
         setWaStatus(waRes.data.status === 'open' ? 'online' : 'offline');
+        setConfig(tenantRes.data);
+        
+        // Se a preferência de ocultar estiver ativa no banco, já fechar o alerta
+        if (tenantRes.data.hide_error_alerts) {
+          setAlertDismissed(true);
+        }
+
+        if (tenantRes.data.config_fluxos?.length > 0) {
+          setNaturezaFiltro('');
+        }
       } catch (err) {
         console.error('Erro ao buscar dados do dashboard', err);
       } finally {
@@ -67,8 +93,12 @@ const Dashboard: React.FC = () => {
 
   const today = new Date().toISOString().split('T')[0];
   const activeEvents = events.filter(e => e.status === 'AGENDADO');
-  const eventsToday = activeEvents.filter(e => e.data_hora_evento.startsWith(today));
-  const upcomingEvents = activeEvents.filter(e => !e.data_hora_evento.startsWith(today));
+  
+  // Filtro por Natureza
+  const natureFilteredEvents = activeEvents.filter(e => !naturezaFiltro || e.natureza === naturezaFiltro);
+
+  const eventsToday = natureFilteredEvents.filter(e => e.data_hora_evento.startsWith(today));
+  const upcomingEvents = natureFilteredEvents.filter(e => !e.data_hora_evento.startsWith(today));
 
   const getMessageStatus = (event: any) => {
     if (!event.notification_logs || event.notification_logs.length === 0) return null;
@@ -121,24 +151,82 @@ const Dashboard: React.FC = () => {
 
       {/* Alerta de Erros */}
       <AnimatePresence>
-        {stats.errors > 0 && (
+        {stats.errors > 0 && !alertDismissed && (
           <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            onClick={() => navigate('/historico')}
-            className="flex items-center gap-4 p-5 bg-red-50 border border-red-200 rounded-[2rem] cursor-pointer hover:bg-red-100 transition-all group overflow-hidden"
+            initial={{ height: 0, opacity: 0, scale: 0.95 }}
+            animate={{ height: 'auto', opacity: 1, scale: 1 }}
+            exit={{ height: 0, opacity: 0, scale: 0.95 }}
+            className="flex items-center gap-4 p-5 bg-red-50 border border-red-200 rounded-[2rem] overflow-hidden relative group"
           >
             <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-500 flex-shrink-0 animate-pulse">
               <AlertTriangle className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <p className="font-black text-red-700 text-sm">
-                Encontramos {stats.errors} falhas de envio nas últimas notificações
+                {showDismissConfirm ? 'Deseja ocultar este aviso permanentemente?' : `Encontramos ${stats.errors} falhas nas últimas notificações`}
               </p>
-              <p className="text-xs text-red-400 font-medium mt-0.5">Analise o Histórico de Envios para entender o motivo e reenviar.</p>
+              {!showDismissConfirm && (
+                <p className="text-xs text-red-400 font-medium mt-0.5 tracking-tight group-hover:text-red-500 transition-colors italic">
+                  Analise o histórico para entender o motivo e revisar os contatos.
+                </p>
+              )}
             </div>
-            <span className="text-red-300 font-black text-xs uppercase tracking-widest group-hover:text-red-500 transition-colors">Resolver →</span>
+            
+            <div className="flex items-center gap-4">
+              <AnimatePresence mode="wait">
+                {showDismissConfirm ? (
+                  <motion.div 
+                    key="confirm-actions"
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: -20, opacity: 0 }}
+                    className="flex items-center gap-2"
+                  >
+                    <button 
+                      onClick={handlePermanentDismiss}
+                      className="px-4 py-2 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-200 active:scale-95"
+                    >
+                      Nunca mais mostrar
+                    </button>
+                    <button 
+                      onClick={() => setAlertDismissed(true)}
+                      className="px-4 py-2 bg-white text-red-600 border border-red-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all active:scale-95"
+                    >
+                      Apenas fechar
+                    </button>
+                    <button 
+                      onClick={() => setShowDismissConfirm(false)}
+                      className="p-2 text-red-400 hover:text-red-700 transition-colors"
+                      title="Voltar"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="normal-actions"
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: -20, opacity: 0 }}
+                    className="flex items-center gap-3"
+                  >
+                    <button 
+                      onClick={() => navigate('/historico')}
+                      className="bg-white px-4 py-2 rounded-xl text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-sm border border-red-100 active:scale-95"
+                    >
+                      Ver Detalhes
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setShowDismissConfirm(true); }}
+                      className="p-2 text-red-300 hover:text-red-500 hover:bg-red-100 rounded-xl transition-all group/close"
+                      title="Dispensar alerta"
+                    >
+                      <X className="w-5 h-5 group-hover/close:scale-110 transition-transform" />
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -241,9 +329,25 @@ const Dashboard: React.FC = () => {
               <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-[#B69B74]">
                 <Clock className="w-5 h-5" />
               </div>
-              Agenda Prioritária
+               Agenda Prioritária
             </h3>
-            <button onClick={() => navigate('/eventos')} className="text-[10px] text-[#B69B74] hover:text-[#2F4858] transition-colors font-black uppercase tracking-widest bg-white/50 px-4 py-2 rounded-xl border border-white/60">Ver Pauta Completa</button>
+            <div className="flex flex-wrap gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button 
+                onClick={() => setNaturezaFiltro('')}
+                className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${naturezaFiltro === '' ? 'bg-[#2F4858] text-white shadow-md' : 'text-slate-500 hover:text-[#2F4858]'}`}
+              >
+                Todos
+              </button>
+              {config?.config_fluxos?.map((fluxo: any) => (
+                <button 
+                  key={fluxo.id}
+                  onClick={() => setNaturezaFiltro(fluxo.nome)}
+                  className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${naturezaFiltro === fluxo.nome ? 'bg-[#2F4858] text-white shadow-md' : 'text-slate-500 hover:text-[#2F4858]'}`}
+                >
+                  {fluxo.nome}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="flex-1 overflow-y-auto custom-scrollbar divide-y divide-white/20">
             {eventsToday.length === 0 ? (
@@ -268,7 +372,12 @@ const Dashboard: React.FC = () => {
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-bold text-[#2F4858] text-lg tracking-tight group-hover:text-black transition-colors">{event.titulo}</h4>
+                        <h4 
+                          onClick={() => navigate(`/crm?clientId=${event.client_id}`)}
+                          className="font-bold text-[#2F4858] text-lg tracking-tight group-hover:text-[#B69B74] transition-colors cursor-pointer hover:underline decoration-[#B69B74]/30"
+                        >
+                          {event.client?.nome_completo || 'Sem cliente'}
+                        </h4>
                         <div className="flex items-center gap-2">
                            <button 
                              onClick={() => handleStatusChange(event.id, 'CONCLUIDO')}
@@ -279,7 +388,24 @@ const Dashboard: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
-                         <p className="text-xs text-slate-500 font-bold uppercase tracking-wide">{event.client?.nome_completo || 'Sem cliente'}</p>
+                         <div className="flex flex-col gap-1">
+                            <p className="text-xs text-slate-500 font-bold uppercase tracking-wide flex items-center gap-2">
+                               <Activity className="w-3 h-3 text-[#B69B74]" /> {event.titulo}
+                            </p>
+                             <div className="flex gap-2">
+                               {(() => {
+                                 const currentFluxo = config?.config_fluxos?.find((f: any) => f.nome === event.natureza);
+                                 if (!currentFluxo) return null;
+                                 const currentTipo = currentFluxo.tipos?.find((t: any) => t.nome === event.tipo_evento);
+                                 
+                                 return (
+                                   <span className="text-[8px] font-black text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 uppercase tracking-widest">
+                                     {event.instancia_judicial || event.fase_administrativa || ''}
+                                   </span>
+                                 );
+                               })()}
+                            </div>
+                         </div>
                          {msgStatus && (
                             <div className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
                               msgStatus === 'ENVIADO' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
@@ -325,12 +451,14 @@ const Dashboard: React.FC = () => {
                         <div className="text-2xl font-black text-white leading-none">{date.getDate()}</div>
                       </div>
                       <div className="flex flex-col justify-center flex-1">
-                        <h4 className="font-bold text-[#2F4858] tracking-tight group-hover:text-black transition-colors">{event.titulo}</h4>
+                        <h4 className="font-bold text-[#2F4858] tracking-tight group-hover:text-black transition-colors">{event.client?.nome_completo || 'Sem cliente'}</h4>
                         <div className="flex items-center gap-3 mt-1">
                            <span className="text-[9px] font-black text-[#B69B74] uppercase tracking-widest flex items-center gap-1">
+                            <Activity className="w-3 h-3" /> {event.titulo}
+                          </span>
+                           <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic flex items-center gap-1">
                             <Clock className="w-3 h-3" /> {date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                           </span>
-                           <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">{event.client?.nome_completo || 'Sem cliente'}</span>
                         </div>
                       </div>
                     </motion.div>

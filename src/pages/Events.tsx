@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Filter, CheckCircle, Ban, 
-  User, MapPin, Hash, AlertCircle, Smartphone
+  User, MapPin, Hash, AlertCircle, Smartphone, Activity
 } from 'lucide-react';
 import api from '../api/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,18 +21,29 @@ interface Evento {
   };
   notification_rules?: any[];
   notification_logs?: any[];
+  tenant?: {
+    config_tipos_eventos: string[];
+    config_instancias_judiciais: string[];
+    config_fases_administrativas: string[];
+  };
 }
 
 const TIPO_LABELS: Record<string, string> = {
   PRAZO: 'Prazo Judiciário',
   AUDIENCIA: 'Audiência',
   REUNIAO: 'Reunião',
+  PERICIA: 'Perícia',
+  CARTORIO: 'Cartório',
+  TESTEMUNHAS: 'Oitivas / Testemunhas',
 };
 
 const TIPO_COLORS: Record<string, string> = {
   PRAZO: 'bg-red-50 text-red-600 border-red-100',
   AUDIENCIA: 'bg-blue-50 text-blue-600 border-blue-100',
   REUNIAO: 'bg-amber-50 text-amber-600 border-amber-100',
+  PERICIA: 'bg-purple-50 text-purple-600 border-purple-100',
+  CARTORIO: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+  TESTEMUNHAS: 'bg-indigo-50 text-indigo-600 border-indigo-100',
 };
 
 const formatTriggerDate = (date: string) => {
@@ -48,6 +59,7 @@ const formatTriggerDate = (date: string) => {
 
 const Events: React.FC = () => {
   const [eventos, setEventos] = useState<Evento[]>([]);
+  const [config, setConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('ALL');
@@ -55,7 +67,12 @@ const Events: React.FC = () => {
   const [concludingEventId, setConcludingEventId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchEvents();
+    const init = async () => {
+      await fetchEvents();
+      const res = await api.get('/api/tenant');
+      setConfig(res.data);
+    };
+    init();
   }, []);
 
   const fetchEvents = async () => {
@@ -134,9 +151,13 @@ const Events: React.FC = () => {
             className="w-full pl-12 pr-8 py-4 rounded-2xl border border-transparent bg-white focus:border-[#B69B74]/30 transition-all outline-none font-bold text-slate-600 shadow-sm appearance-none cursor-pointer"
           >
             <option value="ALL">Todos os Tipos</option>
-            <option value="PRAZO">Prazos</option>
-            <option value="AUDIENCIA">Audiências</option>
-            <option value="REUNIAO">Reuniões</option>
+            {config?.config_fluxos?.map((fluxo: any) => (
+              <optgroup key={fluxo.id} label={fluxo.nome}>
+                {fluxo.tipos.map((t: any) => (
+                  <option key={t.nome} value={t.nome}>{t.nome}</option>
+                ))}
+              </optgroup>
+            ))}
           </select>
         </div>
 
@@ -178,20 +199,29 @@ const Events: React.FC = () => {
                   {/* Informações Centrais */}
                   <div className="flex-1 min-w-0 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md border ${TIPO_COLORS[ev.tipo_evento]}`}>
-                        {TIPO_LABELS[ev.tipo_evento]}
+                      <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md border ${TIPO_COLORS[ev.tipo_evento] || 'bg-slate-50 text-slate-500 border-slate-100'}`}>
+                        {TIPO_LABELS[ev.tipo_evento] || ev.tipo_evento}
                       </span>
+                      {(() => {
+                        const currentFluxo = config?.config_fluxos?.find((f: any) => f.nome === ev.natureza);
+                        if (!currentFluxo) return null;
+                        return (
+                          <span className="text-[8px] font-black text-blue-500 bg-blue-100/30 px-2 py-1 rounded-md border border-blue-100 uppercase tracking-widest">
+                            {ev.instancia_judicial || ev.fase_administrativa || ''}
+                          </span>
+                        );
+                      })()}
                       {ev.numero_processo && (
                         <span className="text-[8px] font-black text-slate-400 bg-slate-50 px-2 py-1 rounded-md border border-slate-100 flex items-center gap-1">
                           <Hash className="w-3 h-3" /> {ev.numero_processo}
                         </span>
                       )}
                     </div>
-                    <h3 className={`text-lg font-bold text-[#2F4858] truncate ${!isAgendado && 'line-through'}`}>{ev.titulo}</h3>
+                    <h3 className={`text-lg font-bold text-[#2F4858] truncate ${!isAgendado && 'line-through'}`}>{ev.client?.nome_completo || 'Sem cliente'}</h3>
                     
                     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                       <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
-                        <User className="w-4 h-4 text-[#B69B74]" /> {ev.client?.nome_completo || 'Sem cliente'}
+                        <Activity className="w-4 h-4 text-[#B69B74]" /> {ev.titulo}
                       </div>
                       {ev.local_link && (
                         <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">

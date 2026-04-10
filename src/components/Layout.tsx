@@ -18,7 +18,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
 
   const menuItems = [
-    { path: '/', icon: Home, label: 'Visão Geral' },
+    { path: '/dashboard', icon: Home, label: 'Visão Geral' },
     { path: '/crm', icon: Users, label: 'Carteira (CRM)' },
     { path: '/eventos', icon: CalendarDays, label: 'Pauta Geral' },
     { path: '/historico', icon: History, label: 'Log de Envios' },

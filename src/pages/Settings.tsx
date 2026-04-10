@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  User, Shield, Building2, Save, Globe, CheckCircle, AlertCircle
+  User, Shield, Building2, Save, Globe, CheckCircle, AlertCircle, Smartphone, Clock, PlusCircle, Trash2, Pencil, X
 } from 'lucide-react';
 import api from '../api/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import PremiumModal from '../components/PremiumModal';
+import MaskedInput from '../components/MaskedInput';
 
-type Tab = 'perfil' | 'escritorio';
+type Tab = 'perfil' | 'escritorio' | 'personalizacao';
 
 const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('perfil');
@@ -20,7 +22,24 @@ const Settings: React.FC = () => {
   const [tenant, setTenant] = useState({ 
     nome_fantasia: '', 
     google_maps_link: '', 
-    evolution_instance_id: ''
+    evolution_instance_id: '',
+    config_fluxos: [] as any[]
+  });
+
+  // Estado do Modal Premium
+  const [modal, setModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'confirm' | 'input';
+    onConfirm: (val?: string) => void;
+    defaultValue?: string;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'confirm',
+    onConfirm: () => {}
   });
 
   useEffect(() => {
@@ -33,8 +52,11 @@ const Settings: React.FC = () => {
         api.get('/api/users/me'),
         api.get('/api/tenant')
       ]);
-      setPerfil({ ...perfil, nome: userRes.data.nome, email: userRes.data.email });
-      setTenant(tenantRes.data);
+      setPerfil({ ...perfil, nome: userRes.data?.nome || '', email: userRes.data?.email || '' });
+      setTenant({
+        ...tenantRes.data,
+        config_fluxos: tenantRes.data.config_fluxos || []
+      });
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
     }
@@ -65,7 +87,8 @@ const Settings: React.FC = () => {
     try {
       await api.patch('/api/tenant', {
         nome_fantasia: tenant.nome_fantasia,
-        google_maps_link: tenant.google_maps_link
+        google_maps_link: tenant.google_maps_link,
+        config_fluxos: tenant.config_fluxos
       });
       setSuccess('Configurações atualizadas com sucesso!');
       setTimeout(() => setSuccess(''), 3000);
@@ -92,7 +115,8 @@ const Settings: React.FC = () => {
       <div className="flex p-1.5 bg-white/40 backdrop-blur-md rounded-[2rem] border border-white/50 shadow-sm w-fit">
         {[
           { id: 'perfil', label: 'Meu Perfil', icon: User },
-          { id: 'escritorio', label: 'Escritório', icon: Building2 }
+          { id: 'escritorio', label: 'Escritório', icon: Building2 },
+          { id: 'personalizacao', label: 'Personalização', icon: Globe }
         ].map(tab => (
           <button
             key={tab.id}
@@ -129,17 +153,23 @@ const Settings: React.FC = () => {
           {activeTab === 'perfil' && (
             <motion.form key="perfil" initial={{ opacity: 0 }} animate={{ opacity: 1 }} onSubmit={handleUpdatePerfil} className="space-y-8 relative z-10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black text-slate-400 uppercase ml-2 tracking-widest">Nome Completo</label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-                    <input type="text" value={perfil.nome} onChange={e => setPerfil({...perfil, nome: e.target.value})} className={inputCls} placeholder="Seu nome" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black text-slate-400 uppercase ml-2 tracking-widest">E-mail de Acesso</label>
-                  <div className="relative"><Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" /><input type="email" value={perfil.email} onChange={e => setPerfil({...perfil, email: e.target.value})} className={inputCls} /></div>
-                </div>
+                <MaskedInput 
+                  mask="none"
+                  label="Nome Completo"
+                  placeholder="Seu nome"
+                  icon={<User />}
+                  value={perfil.nome}
+                  onChange={e => setPerfil({...perfil, nome: e.target.value})}
+                />
+                <MaskedInput 
+                  mask="none"
+                  label="E-mail de Acesso"
+                  placeholder="seu@email.com"
+                  icon={<Globe />}
+                  type="email"
+                  value={perfil.email}
+                  onChange={e => setPerfil({...perfil, email: e.target.value})}
+                />
               </div>
               <div className="flex justify-end pt-8 mt-10 border-t border-slate-100">
                 <button type="submit" disabled={loading} className="px-10 py-4 bg-[#2F4858] text-white rounded-2xl font-black uppercase tracking-widest flex items-center gap-3 hover:bg-[#1F3645] transition-all">
@@ -152,14 +182,20 @@ const Settings: React.FC = () => {
           {activeTab === 'escritorio' && (
             <motion.form key="escritorio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} onSubmit={handleUpdateTenant} className="space-y-8 relative z-10">
               <div className="space-y-8">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black text-slate-400 uppercase ml-2 tracking-widest">Nome Fantasia do Escritório</label>
-                  <div className="relative"><Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" /><input type="text" value={tenant.nome_fantasia} onChange={e => setTenant({...tenant, nome_fantasia: e.target.value})} className={inputCls} /></div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black text-slate-400 uppercase ml-2 tracking-widest">Link de Avaliação Google Maps</label>
-                  <div className="relative"><Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" /><input type="text" value={tenant.google_maps_link || ''} onChange={e => setTenant({...tenant, google_maps_link: e.target.value})} className={inputCls} /></div>
-                </div>
+                <MaskedInput 
+                  mask="none"
+                  label="Nome Fantasia do Escritório"
+                  icon={<Building2 />}
+                  value={tenant.nome_fantasia}
+                  onChange={e => setTenant({...tenant, nome_fantasia: e.target.value})}
+                />
+                <MaskedInput 
+                  mask="none"
+                  label="Link de Avaliação Google Maps"
+                  icon={<Globe />}
+                  value={tenant.google_maps_link || ''}
+                  onChange={e => setTenant({...tenant, google_maps_link: e.target.value})}
+                />
               </div>
               <div className="flex justify-end pt-8 mt-10 border-t border-slate-100">
                 <button type="submit" disabled={loading} className="px-10 py-4 bg-[#B69B74] text-white rounded-2xl font-black uppercase tracking-widest flex items-center gap-3 shadow-xl">
@@ -168,7 +204,210 @@ const Settings: React.FC = () => {
               </div>
             </motion.form>
           )}
+          {activeTab === 'personalizacao' && (
+            <div className="space-y-12 relative z-10">
+              
+              <div className="flex justify-between items-center">
+                <div>
+                   <h2 className="text-2xl font-black text-[#2F4858]">Fluxos de Trabalho</h2>
+                   <p className="text-xs text-[#B69B74] font-bold uppercase tracking-widest">Gerencie as naturezas e regras do seu escritório</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setModal({
+                      isOpen: true,
+                      title: 'Nova Natureza',
+                      message: 'Informe o nome para o novo fluxo de trabalho do escritório.',
+                      type: 'input',
+                      defaultValue: '',
+                      onConfirm: (nome) => {
+                        if (nome) {
+                          setTenant({
+                            ...tenant, 
+                            config_fluxos: [
+                              ...tenant.config_fluxos, 
+                              { 
+                                id: Date.now().toString(), 
+                                nome: nome.toUpperCase(), 
+                                tipos: [
+                                  { nome: 'PRAZO', sub_label: 'Instância', sub_items: [] },
+                                  { nome: 'AUDIÊNCIA', sub_label: 'Tipo de Audiência', sub_items: [] }
+                                ]
+                              }
+                            ]
+                          });
+                        }
+                        setModal(m => ({ ...m, isOpen: false }));
+                      }
+                    });
+                  }}
+                  className="px-6 py-3 bg-[#2F4858] text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg hover:brightness-110"
+                >
+                  <PlusCircle className="w-4 h-4 text-[#B69B74]" /> Novo Fluxo
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+                {tenant.config_fluxos.map((fluxo, fIdx) => (
+                  <motion.div key={fluxo.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-8 rounded-[2.5rem] border border-white/60 space-y-8 flex flex-col shadow-sm hover:shadow-xl transition-all relative group">
+                    
+                    <button 
+                      onClick={() => {
+                        setModal({
+                          isOpen: true,
+                          title: 'Excluir Natureza',
+                          message: `Tem certeza que deseja remover o fluxo "${fluxo.nome}"? Esta ação não pode ser desfeita.`,
+                          type: 'confirm',
+                          onConfirm: () => {
+                            setTenant({...tenant, config_fluxos: tenant.config_fluxos.filter(f => f.id !== fluxo.id)});
+                            setModal(m => ({ ...m, isOpen: false }));
+                          }
+                        });
+                      }}
+                      className="absolute top-6 right-6 p-2 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 shadow-inner">
+                        <Shield className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <input 
+                          value={fluxo.nome} 
+                          onChange={(e) => {
+                            const newFluxos = [...tenant.config_fluxos];
+                            newFluxos[fIdx].nome = e.target.value.toUpperCase();
+                            setTenant({...tenant, config_fluxos: newFluxos});
+                          }}
+                          className="text-xl font-black text-[#2F4858] bg-transparent border-none p-0 outline-none w-full"
+                        />
+                        <p className="text-[9px] text-[#B69B74] font-black uppercase tracking-widest">Estrutura de Natureza</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      {/* Tipos dentro do Fluxo */}
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipos de Compromisso & Sub-Categorias</label>
+                        <div className="space-y-4">
+                          {fluxo.tipos.map((t: any, tIdx: number) => (
+                            <div key={tIdx} className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100 space-y-3 group-relative">
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                  <input 
+                                    className="text-[11px] font-black text-[#2F4858] bg-transparent outline-none w-32 border-b border-transparent focus:border-indigo-200"
+                                    value={t.nome}
+                                    onChange={(e) => {
+                                      const newFluxos = [...tenant.config_fluxos];
+                                      newFluxos[fIdx].tipos[tIdx].nome = e.target.value.toUpperCase();
+                                      setTenant({...tenant, config_fluxos: newFluxos});
+                                    }}
+                                  />
+                                  <span className="text-[8px] font-black text-[#B69B74] uppercase tracking-tighter italic">Compromisso</span>
+                                </div>
+                                <button onClick={() => {
+                                  setModal({
+                                    isOpen: true,
+                                    title: 'Remover Compromisso',
+                                    message: `Deseja excluir "${t.nome}" deste fluxo? Isso removerá as configurações de sub-categoria dele.`,
+                                    type: 'confirm',
+                                    onConfirm: () => {
+                                      const newFluxos = [...tenant.config_fluxos];
+                                      newFluxos[fIdx].tipos = fluxo.tipos.filter((_: any, i: number) => i !== tIdx);
+                                      setTenant({...tenant, config_fluxos: newFluxos});
+                                      setModal(m => ({ ...m, isOpen: false }));
+                                    }
+                                  });
+                                }} className="text-slate-300 hover:text-red-500">
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+
+                              {/* Configuração de Itens Isolados deste Tipo */}
+                              <div className="pl-4 border-l-2 border-indigo-100 space-y-3">
+                                <div className="flex items-center gap-2">
+                                  <Pencil className="w-3 h-3 text-indigo-400" />
+                                  <input 
+                                    className="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-transparent outline-none w-full"
+                                    value={t.sub_label}
+                                    onChange={(e) => {
+                                      const newFluxos = [...tenant.config_fluxos];
+                                      newFluxos[fIdx].tipos[tIdx].sub_label = e.target.value;
+                                      setTenant({...tenant, config_fluxos: newFluxos});
+                                    }}
+                                  />
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  {t.sub_items.map((item: string, iIdx: number) => (
+                                    <span key={iIdx} className="flex items-center gap-2 px-2.5 py-1 bg-white rounded-lg text-[9px] font-bold text-[#2F4858] border border-slate-200 group-hover:bg-slate-50">
+                                      {item}
+                                      <button onClick={() => {
+                                        const newFluxos = [...tenant.config_fluxos];
+                                        newFluxos[fIdx].tipos[tIdx].sub_items = t.sub_items.filter((_: any, i: number) => i !== iIdx);
+                                        setTenant({...tenant, config_fluxos: newFluxos});
+                                      }} className="text-slate-300 hover:text-red-500">
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </span>
+                                  ))}
+                                  <input 
+                                    className="text-[9px] font-bold text-indigo-400 outline-none bg-transparent w-24 placeholder:text-indigo-200"
+                                    placeholder="+ Sub-opção"
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        const val = (e.target as HTMLInputElement).value.trim();
+                                        if (val && !t.sub_items.includes(val)) {
+                                          const newFluxos = [...tenant.config_fluxos];
+                                          newFluxos[fIdx].tipos[tIdx].sub_items = [...t.sub_items, val];
+                                          setTenant({...tenant, config_fluxos: newFluxos});
+                                          (e.target as HTMLInputElement).value = '';
+                                        }
+                                      }
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <button 
+                          onClick={() => {
+                            const newFluxos = [...tenant.config_fluxos];
+                            newFluxos[fIdx].tipos.push({ nome: 'NOVO TIPO', sub_label: 'Etapa/Fase', sub_items: [] });
+                            setTenant({...tenant, config_fluxos: newFluxos});
+                          }}
+                          className="w-full py-3 border-2 border-dashed border-slate-200 rounded-2xl text-[9px] font-black text-slate-400 uppercase tracking-widest hover:border-indigo-200 hover:text-indigo-400 transition-all mt-4"
+                        >
+                          + Adicionar Tipo ao Fluxo {fluxo.nome}
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="flex justify-center pt-8">
+                 <button onClick={() => handleUpdateTenant()} className="px-12 py-5 bg-[#2F4858] text-white rounded-[2rem] font-black uppercase tracking-[0.2em] flex items-center gap-4 shadow-2xl hover:brightness-110 active:scale-95 transition-all text-xs">
+                    <Save className="w-6 h-6 text-[#B69B74]" /> Sincronizar Todos os Fluxos
+                 </button>
+              </div>
+            </div>
+          )}
         </AnimatePresence>
+
+        <PremiumModal 
+          isOpen={modal.isOpen}
+          onClose={() => setModal(m => ({ ...m, isOpen: false }))}
+          onConfirm={modal.onConfirm}
+          title={modal.title}
+          message={modal.message}
+          type={modal.type}
+          defaultValue={modal.defaultValue}
+          confirmLabel={modal.type === 'confirm' ? 'Confirmar Exclusão' : 'Criar Fluxo'}
+        />
       </main>
     </div>
   );
