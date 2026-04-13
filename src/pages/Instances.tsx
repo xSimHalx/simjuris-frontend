@@ -10,9 +10,7 @@ const Instances: React.FC = () => {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [testLoading, setTestLoading] = useState(false);
-  const [testNumber, setTestNumber] = useState('');
+
 
   // Busca o status atual da instância
   const fetchStatus = async () => {
@@ -88,23 +86,7 @@ const Instances: React.FC = () => {
     }
   };
 
-  const handleTestDispatch = async () => {
-    if (!testNumber.trim()) {
-      setTestResult({ success: false, message: 'Digite o número de WhatsApp para enviar o teste.' });
-      return;
-    }
-    setTestLoading(true);
-    setTestResult(null);
-    try {
-      const res = await api.post('/api/notifications/test-message', { numero: testNumber.trim() });
-      setTestResult({ success: true, message: res.data.message || 'Mensagem de teste enviada!' });
-    } catch (err: any) {
-      const msg = err.response?.data?.error || 'Erro ao enviar. Verifique se o WhatsApp está conectado.';
-      setTestResult({ success: false, message: msg });
-    } finally {
-      setTestLoading(false);
-    }
-  };
+
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-slide-up">
@@ -223,63 +205,7 @@ const Instances: React.FC = () => {
         </div>
       </div>
 
-      {/* Card de Disparo Manual */}
-      <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 space-y-6">
-        <div className="flex items-start gap-5">
-          <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-[#B69B74] flex-shrink-0">
-            <Zap className="w-7 h-7" />
-          </div>
-          <div>
-            <h4 className="font-bold text-[#2F4858] text-lg">Disparar Mensagem de Teste</h4>
-            <p className="text-sm text-gray-400 font-medium mt-1">
-              Simula uma mensagem de lembrete direto no seu WhatsApp para validar se o motor está funcionando.
-            </p>
-          </div>
-        </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm select-none">+55</span>
-            <input
-              type="tel"
-              placeholder="48999990000"
-              value={testNumber}
-              onChange={e => { setTestNumber(e.target.value); setTestResult(null); }}
-              disabled={status !== 'online'}
-              className="w-full pl-16 pr-4 py-4 rounded-2xl border-2 border-gray-100 focus:border-[#B69B74]/50 focus:ring-4 focus:ring-[#B69B74]/10 outline-none font-semibold text-slate-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-gray-50 focus:bg-white"
-            />
-          </div>
-          <button
-            onClick={handleTestDispatch}
-            disabled={testLoading || status !== 'online'}
-            className="flex items-center justify-center gap-3 px-8 py-4 bg-[#B69B74] text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:brightness-110 transition-all shadow-lg shadow-amber-900/20 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 whitespace-nowrap"
-          >
-            {testLoading 
-              ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              : <Send className="w-5 h-5" />}
-            {testLoading ? 'Enviando...' : 'Enviar Teste'}
-          </button>
-        </div>
-
-        {testResult && (
-          <div className={`flex items-start gap-3 p-4 rounded-2xl text-sm font-bold border ${
-            testResult.success 
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-              : 'bg-red-50 text-red-600 border-red-100'
-          }`}>
-            {testResult.success 
-              ? <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" /> 
-              : <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" />}
-            {testResult.message}
-          </div>
-        )}
-
-        {status !== 'online' && (
-          <p className="text-xs text-gray-400 font-bold text-center uppercase tracking-widest">
-            ⚠️ Conecte o WhatsApp acima primeiro para habilitar o disparo
-          </p>
-        )}
-      </div>
     </div>
   );
 };

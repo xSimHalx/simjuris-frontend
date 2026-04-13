@@ -102,8 +102,6 @@ const Settings: React.FC = () => {
     }
   };
 
-  // inputCls removido por ser redundante neste contexto
-
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <header>
@@ -210,10 +208,13 @@ const Settings: React.FC = () => {
           {activeTab === 'personalizacao' && (
             <div className="space-y-12 relative z-10">
               
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center bg-white/40 p-6 rounded-[2rem] border border-white/60 shadow-inner">
                 <div>
-                   <h2 className="text-2xl font-black text-[#2F4858]">Fluxos de Trabalho</h2>
-                   <p className="text-xs text-[#B69B74] font-bold uppercase tracking-widest">Gerencie as naturezas e regras do seu escritório</p>
+                   <h2 className="text-2xl font-black text-[#2F4858] flex items-center gap-3">
+                     <Globe className="w-6 h-6 text-[#B69B74]" />
+                     Fluxos de Trabalho
+                   </h2>
+                   <p className="text-xs text-[#B69B74] font-bold uppercase tracking-widest mt-1">Arquitetura Estratégica do Escritório</p>
                 </div>
                 <button 
                   onClick={() => {
@@ -244,157 +245,195 @@ const Settings: React.FC = () => {
                       }
                     });
                   }}
-                  className="px-6 py-3 bg-[#2F4858] text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg hover:brightness-110"
+                  className="px-8 py-4 bg-[#2F4858] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-2xl hover:bg-[#1F3645] transition-all active:scale-95 group"
                 >
-                  <PlusCircle className="w-4 h-4 text-[#B69B74]" /> Novo Fluxo
+                  <PlusCircle className="w-5 h-5 text-[#B69B74] group-hover:rotate-90 transition-transform duration-500" /> Novo Fluxo
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                {tenant.config_fluxos.map((fluxo, fIdx) => (
-                  <motion.div key={fluxo.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-8 rounded-[2.5rem] border border-white/60 space-y-8 flex flex-col shadow-sm hover:shadow-xl transition-all relative group">
-                    
-                    <button 
-                      onClick={() => {
-                        setModal({
-                          isOpen: true,
-                          title: 'Excluir Natureza',
-                          message: `Tem certeza que deseja remover o fluxo "${fluxo.nome}"? Esta ação não pode ser desfeita.`,
-                          type: 'confirm',
-                          onConfirm: () => {
-                            setTenant({...tenant, config_fluxos: tenant.config_fluxos.filter(f => f.id !== fluxo.id)});
-                            setModal(m => ({ ...m, isOpen: false }));
-                          }
-                        });
-                      }}
-                      className="absolute top-6 right-6 p-2 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 items-start">
+                <AnimatePresence>
+                  {tenant.config_fluxos.map((fluxo, fIdx) => (
+                    <motion.div 
+                      key={fluxo.id} 
+                      layout
+                      initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+                      animate={{ opacity: 1, scale: 1, y: 0 }} 
+                      exit={{ opacity: 0, scale: 0.9, x: -20 }}
+                      className="bg-white/90 backdrop-blur-xl p-8 rounded-[3rem] border border-white/80 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.1)] space-y-8 flex flex-col relative group overflow-hidden"
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                      {/* Background Decoration */}
+                      <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#B69B74]/5 rounded-full blur-3xl pointer-events-none group-hover:bg-[#B69B74]/10 transition-colors" />
+                      
+                      <button 
+                        onClick={() => {
+                          setModal({
+                            isOpen: true,
+                            title: 'Excluir Natureza',
+                            message: `Tem certeza que deseja remover o fluxo "${fluxo.nome}"? Esta ação não pode ser desfeita.`,
+                            type: 'confirm',
+                            onConfirm: () => {
+                              setTenant({...tenant, config_fluxos: tenant.config_fluxos.filter(f => f.id !== fluxo.id)});
+                              setModal(m => ({ ...m, isOpen: false }));
+                            }
+                          });
+                        }}
+                        className="absolute top-8 right-8 p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
 
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 shadow-inner">
-                        <Shield className="w-6 h-6" />
-                      </div>
-                      <div className="flex-1">
-                        <input 
-                          value={fluxo.nome} 
-                          onChange={(e) => {
-                            const newFluxos = [...tenant.config_fluxos];
-                            newFluxos[fIdx].nome = e.target.value.toUpperCase();
-                            setTenant({...tenant, config_fluxos: newFluxos});
-                          }}
-                          className="text-xl font-black text-[#2F4858] bg-transparent border-none p-0 outline-none w-full"
-                        />
-                        <p className="text-[9px] text-[#B69B74] font-black uppercase tracking-widest">Estrutura de Natureza</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-6">
-                      {/* Tipos dentro do Fluxo */}
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipos de Compromisso & Sub-Categorias</label>
-                        <div className="space-y-4">
-                          {fluxo.tipos.map((t: any, tIdx: number) => (
-                            <div key={tIdx} className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100 space-y-3 group-relative">
-                              <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-2">
-                                  <input 
-                                    className="text-[11px] font-black text-[#2F4858] bg-transparent outline-none w-32 border-b border-transparent focus:border-indigo-200"
-                                    value={t.nome}
-                                    onChange={(e) => {
-                                      const newFluxos = [...tenant.config_fluxos];
-                                      newFluxos[fIdx].tipos[tIdx].nome = e.target.value.toUpperCase();
-                                      setTenant({...tenant, config_fluxos: newFluxos});
-                                    }}
-                                  />
-                                  <span className="text-[8px] font-black text-[#B69B74] uppercase tracking-tighter italic">Compromisso</span>
-                                </div>
-                                <button onClick={() => {
-                                  setModal({
-                                    isOpen: true,
-                                    title: 'Remover Compromisso',
-                                    message: `Deseja excluir "${t.nome}" deste fluxo? Isso removerá as configurações de sub-categoria dele.`,
-                                    type: 'confirm',
-                                    onConfirm: () => {
-                                      const newFluxos = [...tenant.config_fluxos];
-                                      newFluxos[fIdx].tipos = fluxo.tipos.filter((_: any, i: number) => i !== tIdx);
-                                      setTenant({...tenant, config_fluxos: newFluxos});
-                                      setModal(m => ({ ...m, isOpen: false }));
-                                    }
-                                  });
-                                }} className="text-slate-300 hover:text-red-500">
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </div>
-
-                              {/* Configuração de Itens Isolados deste Tipo */}
-                              <div className="pl-4 border-l-2 border-indigo-100 space-y-3">
-                                <div className="flex items-center gap-2">
-                                  <Pencil className="w-3 h-3 text-indigo-400" />
-                                  <input 
-                                    className="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-transparent outline-none w-full"
-                                    value={t.sub_label}
-                                    onChange={(e) => {
-                                      const newFluxos = [...tenant.config_fluxos];
-                                      newFluxos[fIdx].tipos[tIdx].sub_label = e.target.value;
-                                      setTenant({...tenant, config_fluxos: newFluxos});
-                                    }}
-                                  />
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                  {t.sub_items.map((item: string, iIdx: number) => (
-                                    <span key={iIdx} className="flex items-center gap-2 px-2.5 py-1 bg-white rounded-lg text-[9px] font-bold text-[#2F4858] border border-slate-200 group-hover:bg-slate-50">
-                                      {item}
-                                      <button onClick={() => {
-                                        const newFluxos = [...tenant.config_fluxos];
-                                        newFluxos[fIdx].tipos[tIdx].sub_items = t.sub_items.filter((_: any, i: number) => i !== iIdx);
-                                        setTenant({...tenant, config_fluxos: newFluxos});
-                                      }} className="text-slate-300 hover:text-red-500">
-                                        <X className="w-3 h-3" />
-                                      </button>
-                                    </span>
-                                  ))}
-                                  <input 
-                                    className="text-[9px] font-bold text-indigo-400 outline-none bg-transparent w-24 placeholder:text-indigo-200"
-                                    placeholder="+ Sub-opção"
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter') {
-                                        const val = (e.target as HTMLInputElement).value.trim();
-                                        if (val && !t.sub_items.includes(val)) {
-                                          const newFluxos = [...tenant.config_fluxos];
-                                          newFluxos[fIdx].tipos[tIdx].sub_items = [...t.sub_items, val];
-                                          setTenant({...tenant, config_fluxos: newFluxos});
-                                          (e.target as HTMLInputElement).value = '';
-                                        }
-                                      }
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                      <div className="flex items-center gap-5 relative">
+                        <div className="w-14 h-14 bg-gradient-to-br from-[#2F4858] to-[#456276] rounded-[1.25rem] flex items-center justify-center text-white shadow-xl shadow-blue-900/20">
+                          <Shield className="w-7 h-7 text-[#B69B74]" />
                         </div>
-                        
-                        <button 
-                          onClick={() => {
-                            const newFluxos = [...tenant.config_fluxos];
-                            newFluxos[fIdx].tipos.push({ nome: 'NOVO TIPO', sub_label: 'Etapa/Fase', sub_items: [] });
-                            setTenant({...tenant, config_fluxos: newFluxos});
-                          }}
-                          className="w-full py-3 border-2 border-dashed border-slate-200 rounded-2xl text-[9px] font-black text-slate-400 uppercase tracking-widest hover:border-indigo-200 hover:text-indigo-400 transition-all mt-4"
-                        >
-                          + Adicionar Tipo ao Fluxo {fluxo.nome}
-                        </button>
+                        <div className="flex-1">
+                          <input 
+                            value={fluxo.nome} 
+                            onChange={(e) => {
+                              const newFluxos = [...tenant.config_fluxos];
+                              newFluxos[fIdx].nome = e.target.value.toUpperCase();
+                              setTenant({...tenant, config_fluxos: newFluxos});
+                            }}
+                            className="text-2xl font-black text-[#2F4858] bg-transparent border-none p-0 outline-none w-full font-display tracking-tight focus:text-[#B69B74] transition-colors"
+                          />
+                          <p className="text-[10px] text-[#B69B74] font-black uppercase tracking-[0.3em]">Estrutura de Natureza</p>
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+
+                      <div className="space-y-6">
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Configuração de Tipos</label>
+                          <div className="space-y-6">
+                            <AnimatePresence mode="popLayout">
+                              {fluxo.tipos.map((t: any, tIdx: number) => (
+                                <motion.div 
+                                  key={tIdx}
+                                  layout
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  exit={{ opacity: 0, scale: 0.95 }}
+                                  className="p-6 bg-slate-50/70 rounded-[2rem] border-2 border-slate-50 space-y-4 hover:border-[#B69B74]/20 hover:bg-white hover:shadow-xl hover:shadow-slate-200/40 transition-all group/type"
+                                >
+                                  <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-sm text-[#2F4858] group-hover/type:text-[#B69B74] transition-colors">
+                                         <PlusCircle className="w-4 h-4" />
+                                      </div>
+                                      <div className="flex flex-col">
+                                        <input 
+                                          className="text-xs font-black text-[#2F4858] bg-transparent outline-none w-48 border-b border-transparent focus:border-[#B69B74]/30"
+                                          value={t.nome}
+                                          onChange={(e) => {
+                                            const newFluxos = [...tenant.config_fluxos];
+                                            newFluxos[fIdx].tipos[tIdx].nome = e.target.value.toUpperCase();
+                                            setTenant({...tenant, config_fluxos: newFluxos});
+                                          }}
+                                        />
+                                        <span className="text-[8px] font-black text-[#B69B74]/60 uppercase tracking-tighter italic">Categoria de Compromisso</span>
+                                      </div>
+                                    </div>
+                                    <button onClick={() => {
+                                      setModal({
+                                        isOpen: true,
+                                        title: 'Remover Compromisso',
+                                        message: `Deseja excluir "${t.nome}" deste fluxo?`,
+                                        type: 'confirm',
+                                        onConfirm: () => {
+                                          const newFluxos = [...tenant.config_fluxos];
+                                          newFluxos[fIdx].tipos = fluxo.tipos.filter((_: any, i: number) => i !== tIdx);
+                                          setTenant({...tenant, config_fluxos: newFluxos});
+                                          setModal(m => ({ ...m, isOpen: false }));
+                                        }
+                                      });
+                                    }} className="p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover/type:opacity-100 transition-opacity">
+                                      <X className="w-5 h-5" />
+                                    </button>
+                                  </div>
+
+                                  <div className="pl-6 border-l-4 border-[#B69B74]/10 space-y-4">
+                                    <div className="flex items-center gap-2">
+                                      <Pencil className="w-3.5 h-3.5 text-[#B69B74]/40" />
+                                      <input 
+                                        className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-transparent outline-none w-full focus:text-[#2F4858] transition-colors"
+                                        value={t.sub_label}
+                                        onChange={(e) => {
+                                          const newFluxos = [...tenant.config_fluxos];
+                                          newFluxos[fIdx].tipos[tIdx].sub_label = e.target.value;
+                                          setTenant({...tenant, config_fluxos: newFluxos});
+                                        }}
+                                      />
+                                    </div>
+                                    <div className="flex flex-wrap gap-2.5">
+                                      <AnimatePresence mode="popLayout">
+                                        {t.sub_items.map((item: string, iIdx: number) => (
+                                          <motion.span 
+                                            key={iIdx} 
+                                            layout
+                                            initial={{ scale: 0.8, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            exit={{ scale: 0.8, opacity: 0 }}
+                                            className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl text-[10px] font-bold text-[#2F4858] shadow-sm border border-slate-100 hover:border-[#B69B74]/30 hover:shadow-md transition-all group/chip cursor-default"
+                                          >
+                                            {item}
+                                            <button onClick={() => {
+                                              const newFluxos = [...tenant.config_fluxos];
+                                              newFluxos[fIdx].tipos[tIdx].sub_items = t.sub_items.filter((_: any, i: number) => i !== iIdx);
+                                              setTenant({...tenant, config_fluxos: newFluxos});
+                                            }} className="hover:text-red-500 transition-colors">
+                                              <X className="w-3.5 h-3.5 opacity-30 group-hover/chip:opacity-100" />
+                                            </button>
+                                          </motion.span>
+                                        ))}
+                                      </AnimatePresence>
+                                      
+                                      <div className="relative group/add">
+                                        <input 
+                                          className="text-[10px] font-bold text-[#B69B74] outline-none bg-white/40 border-2 border-dashed border-[#B69B74]/20 rounded-xl px-4 py-2 w-32 placeholder:text-[#B69B74]/40 focus:w-48 focus:border-[#B69B74]/50 focus:bg-white transition-all shadow-inner"
+                                          placeholder="+ Sub-opção"
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                              const val = (e.target as HTMLInputElement).value.trim();
+                                              if (val && !t.sub_items.includes(val)) {
+                                                const newFluxos = [...tenant.config_fluxos];
+                                                newFluxos[fIdx].tipos[tIdx].sub_items = [...t.sub_items, val];
+                                                setTenant({...tenant, config_fluxos: newFluxos});
+                                                (e.target as HTMLInputElement).value = '';
+                                              }
+                                            }
+                                          }}
+                                        />
+                                        <PlusCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#B69B74]/30 pointer-events-none group-focus-within/add:rotate-90 transition-transform" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              ))}
+                            </AnimatePresence>
+                          </div>
+                          
+                          <button 
+                            onClick={() => {
+                              const newFluxos = [...tenant.config_fluxos];
+                              newFluxos[fIdx].tipos.push({ nome: 'NOVO TIPO', sub_label: 'Etapa/Fase', sub_items: [] });
+                              setTenant({...tenant, config_fluxos: newFluxos});
+                            }}
+                            className="w-full py-5 border-2 border-dashed border-slate-100 rounded-[2rem] text-[10px] font-black text-slate-400 uppercase tracking-widest hover:border-[#B69B74]/40 hover:text-[#B69B74] hover:bg-[#B69B74]/5 transition-all mt-6 flex items-center justify-center gap-2 group/addbtn"
+                          >
+                            <PlusCircle className="w-5 h-5 group-hover/addbtn:scale-110 transition-transform" />
+                            Adicionar Tipo ao Fluxo {fluxo.nome}
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
 
-              <div className="flex justify-center pt-8">
-                 <button onClick={() => handleUpdateTenant()} className="px-12 py-5 bg-[#2F4858] text-white rounded-[2rem] font-black uppercase tracking-[0.2em] flex items-center gap-4 shadow-2xl hover:brightness-110 active:scale-95 transition-all text-xs">
-                    <Save className="w-6 h-6 text-[#B69B74]" /> Sincronizar Todos os Fluxos
+              <div className="flex justify-center pt-12">
+                 <button onClick={() => handleUpdateTenant()} className="px-14 py-6 bg-[#2F4858] text-white rounded-[2.5rem] font-black uppercase tracking-[0.3em] flex items-center gap-4 shadow-[0_30px_60px_-15px_rgba(47,72,88,0.4)] hover:brightness-110 active:scale-[0.98] transition-all text-[11px] group">
+                    <Save className="w-7 h-7 text-[#B69B74] group-hover:scale-110 transition-transform" /> 
+                    Sincronizar Arquitetura Elite
                  </button>
               </div>
             </div>

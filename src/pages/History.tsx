@@ -61,8 +61,8 @@ const History: React.FC = () => {
                       {new Date(log.data_envio).toLocaleDateString('pt-BR')} <span className="text-gray-300 ml-1">{new Date(log.data_envio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                     </td>
                     <td className="px-8 py-5 text-sm font-bold text-[#2F4858]">{log.event?.titulo || 'Evento Excluído'}</td>
-                    <td className="px-8 py-5 text-sm font-medium text-gray-600">{log.numero_destino}</td>
-                    <td className="px-8 py-5 text-sm font-bold text-gray-400 uppercase">WhatsApp</td>
+                    <td className="px-8 py-5 text-sm font-medium text-gray-600">{log.event?.client?.nome_completo || 'N/A'}</td>
+                    <td className="px-8 py-5 text-sm font-medium text-gray-500">{log.numero_destino}</td>
                     <td className="px-8 py-5">
                       <StatusBadge 
                         status={

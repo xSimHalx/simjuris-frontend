@@ -11,6 +11,8 @@ import { useSearchParams } from 'react-router-dom';
 import StatusBadge from '../components/StatusBadge';
 import MaskedInput from '../components/MaskedInput';
 import PremiumDatePicker from '../components/PremiumDatePicker';
+import Timeline from '../components/Timeline';
+
 
 interface Evento {
   id: string;
@@ -903,103 +905,30 @@ const CRM = () => {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                      {/* Coluna Esquerda: Linha do Tempo */}
+                      {/* Coluna Esquerda: Linha do Tempo Interativa */}
                       <div className="space-y-6 lg:border-r lg:border-slate-200/60 lg:pr-8 relative min-h-[400px]">
-                        {/* A Trilha Visual (Linha Vertical) */}
-                        <div className="absolute left-6 top-16 bottom-10 w-0.5 bg-slate-200/50 hidden sm:block" />
-                        
                         <div className="flex items-center justify-between relative z-10">
                           <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#B69B74]">
                             <CalendarIcon className="w-4 h-4" /> Linha do Tempo ({selectedCustomerEvents.length})
                           </div>
                         </div>
 
-                        <div className="space-y-4 relative z-10">
-                          {selectedCustomerEvents.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-20 opacity-40">
-                              <Activity className="w-16 h-16 text-[#B69B74] mb-4 stroke-1" />
-                              <p className="text-xs font-black uppercase text-[#2F4858] tracking-[0.3em]">Aguardando Movimentações</p>
-                              <p className="text-[10px] text-slate-400 mt-2">Nenhum evento registrado nesta linha do tempo</p>
-                            </div>
-                          ) : (
-                            selectedCustomerEvents.map(ev => {
-                              const isAgendado = ev.status === 'AGENDADO';
-                              const msgStatus = getMessageStatus(ev);
-                              
-                              const borderColor = 
-                                ev.tipo_evento === 'PRAZO' ? 'border-l-red-400' :
-                                ev.tipo_evento === 'AUDIENCIA' ? 'border-l-blue-400' :
-                                ev.tipo_evento === 'REUNIAO' ? 'border-l-amber-400' :
-                                ev.tipo_evento === 'PERICIA' ? 'border-l-purple-400' : 'border-l-slate-300';
-
-                              const dotColor = 
-                                ev.tipo_evento === 'PRAZO' ? 'bg-red-400' :
-                                ev.tipo_evento === 'AUDIENCIA' ? 'bg-blue-400' :
-                                ev.tipo_evento === 'REUNIAO' ? 'bg-amber-400' :
-                                ev.tipo_evento === 'PERICIA' ? 'bg-purple-400' : 'bg-slate-300';
-
-                              return (
-                                <motion.div 
-                                  key={ev.id} 
-                                  whileHover={{ x: 6, scale: 1.005 }}
-                                  className={`bg-white rounded-2xl p-5 shadow-sm border border-slate-100 transition-all duration-300 relative pl-12 border-l-4 ${borderColor} ${!isAgendado && 'opacity-60 grayscale-[0.3]'}`}>
-                                  
-                                  {/* Bolinha Indicadora de Conexão na Trilha */}
-                                  <div className={`absolute left-[22.5px] top-8 w-3 h-3 rounded-full border-2 border-white shadow-sm z-10 ${dotColor}`} />
-
-                                  <div className="flex justify-between items-start gap-3">
-                                    <div className="min-w-0 flex-1">
-                                      <div className="flex items-center gap-2 mb-1.5">
-                                        <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md ${TIPO_COLORS[ev.tipo_evento] || 'bg-slate-100 text-slate-500'}`}>
-                                          {TIPO_LABELS[ev.tipo_evento] || ev.tipo_evento}
-                                        </span>
-                                        {!isAgendado && <span className="text-[8px] font-black uppercase text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">{ev.status}</span>}
-                                      </div>
-                                      <p className={`font-bold text-[#2F4858] text-[15px] leading-tight truncate ${!isAgendado && 'line-through'}`}>{ev.titulo}</p>
-                                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1.5 flex items-center gap-1.5">
-                                        <Clock className="w-3 h-3" /> {formatDate(ev.data_hora_evento)}
-                                      </p>
-                                      
-                                      {msgStatus && (
-                                        <div className="mt-4 pt-4 border-t border-slate-50 flex items-center gap-3">
-                                          <MessageSquare className="w-3.5 h-3.5 text-[#B69B74]/50" />
-                                          <StatusBadge 
-                                            status={msgStatus === 'ENVIADO' ? 'enviado' : msgStatus === 'ERRO' ? 'erro' : 'pendente'} 
-                                            text={msgStatus === 'ENVIADO' ? 'WhatsApp Entregue' : msgStatus === 'ERRO' ? 'Falha no Envio' : 'Aguardando Disparo'} 
-                                          />
-                                        </div>
-                                      )}
-                                    </div>
-
-                                    {isAgendado && (
-                                      <div className="flex flex-col gap-2">
-                                        <button 
-                                          onClick={() => {
-                                            if (ev.tipo_evento !== 'PRAZO') {
-                                              const ok = window.confirm('Deseja enviar uma mensagem de agradecimento com o link do Google Feedback ao concluir?');
-                                              setSendFeedback(ok);
-                                              handleStatusChange(ev.id, 'CONCLUIDO');
-                                            } else {
-                                              handleStatusChange(ev.id, 'CONCLUIDO');
-                                            }
-                                          }}
-                                          className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm">
-                                          <CheckCircle className="w-5 h-5" />
-                                        </button>
-                                        <button 
-                                          onClick={() => handleStatusChange(ev.id, 'CANCELADO')}
-                                          className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-[#2F4858] hover:text-white transition-all shadow-sm">
-                                          <Ban className="w-5 h-5" />
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                </motion.div>
-                              );
-                            })
-                          )}
-                        </div>
+                        <Timeline 
+                          events={selectedCustomerEvents} 
+                          onStatusChange={(eventId, status) => {
+                            if (status === 'CONCLUIDO') {
+                              const ev = selectedCustomerEvents.find(e => e.id === eventId);
+                              if (ev && ev.tipo_evento !== 'PRAZO') {
+                                const ok = window.confirm('Deseja enviar uma mensagem de agradecimento com o link do Google Feedback ao concluir?');
+                                setSendFeedback(ok);
+                              }
+                            }
+                            handleStatusChange(eventId, status);
+                          }}
+                          formatDate={formatDate}
+                        />
                       </div>
+
 
                       {/* Coluna Direita: Dados e Ações */}
                       <div className="space-y-6">
